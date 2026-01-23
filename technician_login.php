@@ -1,7 +1,13 @@
 <?php
 // technician_login.php - Technician Login API
+// Clean any previous output
+ob_start();
+ob_clean();
+error_reporting(0);
+ini_set('display_errors', 0);
+
 session_start();
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
@@ -11,18 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Database config
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "warrantymaintenance";
-
-// Create connection
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Read JSON input
 $input = json_decode(file_get_contents("php://input"), true);

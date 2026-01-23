@@ -13,16 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status"=>"error","message"=>"POST method required"]);
+    echo json_encode(["status" => "error", "message" => "POST method required"]);
     exit;
 }
 
-// DB Connection (Warranty Maintenance DB)
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status"=>"error","message"=>"Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Read JSON or form-data
 $raw = file_get_contents("php://input");
@@ -34,7 +30,7 @@ if (!is_array($input) || empty($input)) {
 $email = strtolower(trim($input['email'] ?? ''));
 
 if (empty($email)) {
-    echo json_encode(["status"=>"error","message"=>"Email is required"]);
+    echo json_encode(["status" => "error", "message" => "Email is required"]);
     exit;
 }
 
@@ -47,7 +43,7 @@ $res = $stmt->get_result();
 if ($res->num_rows === 0) {
     // Security: do not reveal user existence
     echo json_encode([
-        "status"  => "success",
+        "status" => "success",
         "message" => "Password reset link sent to email"
     ]);
     exit;
@@ -92,11 +88,11 @@ Warranty Maintenance Team
 ";
 
 // Try email silently (mail() fails on localhost)
-@ mail($email, $subject, $message, "From: no-reply@warrantymaintenance.com");
+@mail($email, $subject, $message, "From: no-reply@warrantymaintenance.com");
 
 // ALWAYS return success (Android / Web safe)
 echo json_encode([
-    "status"  => "success",
+    "status" => "success",
     "message" => "Password reset link sent to email"
 ]);
 exit;

@@ -10,66 +10,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status"=>"error","message"=>"POST method required"]);
+    echo json_encode(["status" => "error", "message" => "POST method required"]);
     exit;
 }
 
-// DB
-$conn = new mysqli("localhost","root","","warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status"=>"error","message"=>"DB connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Inputs
-$issue_id        = $_POST['issue_id'] ?? '';
-$work_done       = trim($_POST['work_done'] ?? '');
-$parts_replaced  = trim($_POST['parts_replaced'] ?? 'None');
-$service_cost    = $_POST['service_cost'] ?? '';
-$notes           = trim($_POST['notes'] ?? '');
+$issue_id = $_POST['issue_id'] ?? '';
+$work_done = trim($_POST['work_done'] ?? '');
+$parts_replaced = trim($_POST['parts_replaced'] ?? 'None');
+$service_cost = $_POST['service_cost'] ?? '';
+$notes = trim($_POST['notes'] ?? '');
 
 $errors = [];
 
-if (!$issue_id) $errors[] = "Issue ID is required";
-if ($work_done === '') $errors[] = "Work done is required";
+if (!$issue_id)
+    $errors[] = "Issue ID is required";
+if ($work_done === '')
+    $errors[] = "Work done is required";
 if ($service_cost === '' || !is_numeric($service_cost)) {
     $errors[] = "Valid service cost required";
 }
 
 if (!empty($errors)) {
-    echo json_encode(["status"=>"error","errors"=>$errors]);
+    echo json_encode(["status" => "error", "errors" => $errors]);
     exit;
 }
 
 // Upload directory
 $uploadDir = "uploads/service_reports/";
-if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+if (!is_dir($uploadDir))
+    mkdir($uploadDir, 0777, true);
 
 // Upload helper
-function uploadImage($field, $dir) {
+function uploadImage($field, $dir)
+{
     if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
         return null;
     }
-    $allowed = ['image/jpeg','image/png'];
-    if (!in_array($_FILES[$field]['type'], $allowed)) return null;
+    $allowed = ['image/jpeg', 'image/png'];
+    if (!in_array($_FILES[$field]['type'], $allowed))
+        return null;
 
-    $name = time().'_'.$field.'_'.basename($_FILES[$field]['name']);
-    $path = $dir.$name;
+    $name = time() . '_' . $field . '_' . basename($_FILES[$field]['name']);
+    $path = $dir . $name;
     move_uploaded_file($_FILES[$field]['tmp_name'], $path);
     return $path;
 }
 
 // Photos
 $before_photo = uploadImage('before_photo', $uploadDir);
-$after_photo  = uploadImage('after_photo', $uploadDir);
+$after_photo = uploadImage('after_photo', $uploadDir);
 
 // Additional photos (multiple)
 $extraPhotos = [];
 if (!empty($_FILES['additional_photos']['name'][0])) {
     foreach ($_FILES['additional_photos']['tmp_name'] as $i => $tmp) {
         if ($_FILES['additional_photos']['error'][$i] === UPLOAD_ERR_OK) {
-            $name = time().'_extra_'.$i.'_'.basename($_FILES['additional_photos']['name'][$i]);
-            $path = $uploadDir.$name;
+            $name = time() . '_extra_' . $i . '_' . basename($_FILES['additional_photos']['name'][$i]);
+            $path = $uploadDir . $name;
             move_uploaded_file($tmp, $path);
             $extraPhotos[] = $path;
         }
@@ -101,12 +102,12 @@ if ($stmt->execute()) {
     $conn->query("UPDATE issues SET status='Resolved' WHERE id=$issue_id");
 
     echo json_encode([
-        "status"=>"success",
-        "message"=>"Service report submitted successfully"
+        "status" => "success",
+        "message" => "Service report submitted successfully"
     ]);
 } else {
     echo json_encode([
-        "status"=>"error",
-        "message"=>"Failed to submit service report"
+        "status" => "error",
+        "message" => "Failed to submit service report"
     ]);
 }

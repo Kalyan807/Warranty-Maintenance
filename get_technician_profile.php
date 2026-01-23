@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 // Get technician_id from query param
 $technician_id = isset($_GET['technician_id']) ? intval($_GET['technician_id']) : 1;

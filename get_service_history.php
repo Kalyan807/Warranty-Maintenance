@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 // Optional filters
 $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 50;

@@ -1,6 +1,12 @@
 <?php
 // dashboard_summary.php - Supervisor Dashboard Summary API
-header("Content-Type: application/json");
+// Clean any previous output
+ob_start();
+ob_clean();
+error_reporting(0);
+ini_set('display_errors', 0);
+
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
@@ -16,11 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
-    exit;
-}
+include("db.php");
 
 // Get total appliances (from warranty_records, fallback to issues count)
 $totalAppliances = 0;

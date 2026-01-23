@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 // Get days parameter (default 90 days)
 $days = isset($_GET['days']) ? intval($_GET['days']) : 90;

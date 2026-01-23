@@ -5,21 +5,21 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status"=>"error","message"=>"Invalid request method. Use POST."]);
+    echo json_encode(["status" => "error", "message" => "Invalid request method. Use POST."]);
     exit;
 }
 
-$host = "localhost"; $user = "root"; $pass = ""; $db = "warrantymaintenance";
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    echo json_encode(["status"=>"error","message"=>"Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
-function clean($v) {
-    return trim(htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
+function clean($v)
+{
+    return trim(htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'));
 }
 
 // Read fields (multipart/form-data expected)
@@ -41,7 +41,7 @@ $spec_map = [
     'fan technician' => 'Fan Technician'
 ];
 
-$spec_key = strtolower(str_replace(['-','/'], ' ', $specialization_raw));
+$spec_key = strtolower(str_replace(['-', '/'], ' ', $specialization_raw));
 $spec_key = preg_replace('/\s+/', ' ', trim($spec_key));
 
 $canonical_specialization = $spec_map[$spec_key] ?? null;
@@ -49,7 +49,8 @@ $canonical_specialization = $spec_map[$spec_key] ?? null;
 $errors = [];
 
 // Validate name
-if ($name === '') $errors[] = "Name is required.";
+if ($name === '')
+    $errors[] = "Name is required.";
 
 // Phone: allow + and digits, 7-15 digits (strip + for length check)
 if ($phone === '') {
@@ -65,8 +66,10 @@ if ($phone === '') {
 }
 
 // Email
-if ($email === '') $errors[] = "Email is required.";
-elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email address.";
+if ($email === '')
+    $errors[] = "Email is required.";
+elseif (!filter_var($email, FILTER_VALIDATE_EMAIL))
+    $errors[] = "Invalid email address.";
 
 // Experience: optional -> default 0, but if provided must be numeric & non-negative
 if ($experience_raw === '') {
@@ -89,7 +92,8 @@ if ($specialization_raw === '') {
 }
 
 // Address
-if ($address === '') $errors[] = "Address is required.";
+if ($address === '')
+    $errors[] = "Address is required.";
 
 // File handling (id_proof)
 $idProofPath = null;
@@ -101,25 +105,26 @@ if (!isset($_FILES['id_proof']) || $_FILES['id_proof']['error'] === UPLOAD_ERR_N
         $errors[] = "File upload error (code {$f['error']}).";
     } else {
         $maxBytes = 2 * 1024 * 1024;
-        if ($f['size'] > $maxBytes) $errors[] = "ID proof must be <= 2 MB.";
+        if ($f['size'] > $maxBytes)
+            $errors[] = "ID proof must be <= 2 MB.";
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $f['tmp_name']);
         finfo_close($finfo);
-        $allowed_mimes = ['image/jpeg'=>'jpg','image/png'=>'png','application/pdf'=>'pdf'];
+        $allowed_mimes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'application/pdf' => 'pdf'];
         if (!array_key_exists($mime, $allowed_mimes)) {
             $errors[] = "ID proof must be JPG, PNG, or PDF.";
         } else {
-            $uploadDir = __DIR__.'/uploads/technician_ids';
-            if (!is_dir($uploadDir) && !mkdir($uploadDir,0755,true)) {
+            $uploadDir = __DIR__ . '/uploads/technician_ids';
+            if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
                 $errors[] = "Failed to create upload directory.";
             } else {
                 $ext = $allowed_mimes[$mime];
-                $filename = 'id_'.time().'_'.bin2hex(random_bytes(6)).'.'.$ext;
-                $destination = $uploadDir.'/'.$filename;
-                if (!move_uploaded_file($f['tmp_name'],$destination)) {
+                $filename = 'id_' . time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $destination = $uploadDir . '/' . $filename;
+                if (!move_uploaded_file($f['tmp_name'], $destination)) {
                     $errors[] = "Failed to save uploaded file.";
                 } else {
-                    $idProofPath = 'uploads/technician_ids/'.$filename;
+                    $idProofPath = 'uploads/technician_ids/' . $filename;
                 }
             }
         }
@@ -129,18 +134,19 @@ if (!isset($_FILES['id_proof']) || $_FILES['id_proof']['error'] === UPLOAD_ERR_N
 // If any errors, return them and echo back received values (useful for debugging)
 if (!empty($errors)) {
     // cleanup saved file if any
-    if ($idProofPath && file_exists(__DIR__.'/'.$idProofPath)) @unlink(__DIR__.'/'.$idProofPath);
+    if ($idProofPath && file_exists(__DIR__ . '/' . $idProofPath))
+        @unlink(__DIR__ . '/' . $idProofPath);
     echo json_encode([
-        "status"=>"error",
-        "errors"=>$errors,
+        "status" => "error",
+        "errors" => $errors,
         "received" => [
-            "name"=>$name,
-            "phone"=>$phone,
-            "email"=>$email,
-            "experience_raw"=>$experience_raw,
-            "specialization_raw"=>$specialization_raw,
-            "normalized_specialization"=>$canonical_specialization,
-            "address"=>$address
+            "name" => $name,
+            "phone" => $phone,
+            "email" => $email,
+            "experience_raw" => $experience_raw,
+            "specialization_raw" => $specialization_raw,
+            "normalized_specialization" => $canonical_specialization,
+            "address" => $address
         ]
     ]);
     exit;
@@ -151,8 +157,9 @@ $sql = "INSERT INTO technicians (name, phone, email, experience_years, specializ
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    if ($idProofPath && file_exists(__DIR__.'/'.$idProofPath)) @unlink(__DIR__.'/'.$idProofPath);
-    echo json_encode(["status"=>"error","message"=>"Database prepare failed: ".$conn->error]);
+    if ($idProofPath && file_exists(__DIR__ . '/' . $idProofPath))
+        @unlink(__DIR__ . '/' . $idProofPath);
+    echo json_encode(["status" => "error", "message" => "Database prepare failed: " . $conn->error]);
     exit;
 }
 
@@ -160,10 +167,10 @@ $stmt->bind_param("ssissss", $name, $phone, $email, $experience, $specialization
 $ok = $stmt->execute();
 
 if ($ok) {
-    echo json_encode(["status"=>"success","message"=>"Technician saved","technician_id"=>$stmt->insert_id]);
+    echo json_encode(["status" => "success", "message" => "Technician saved", "technician_id" => $stmt->insert_id]);
 } else {
-    if ($idProofPath && file_exists(__DIR__.'/'.$idProofPath)) @unlink(__DIR__.'/'.$idProofPath);
-    echo json_encode(["status"=>"error","message"=>"Failed to save technician: ".$stmt->error]);
+    if ($idProofPath && file_exists(__DIR__ . '/' . $idProofPath))
+        @unlink(__DIR__ . '/' . $idProofPath);
+    echo json_encode(["status" => "error", "message" => "Failed to save technician: " . $stmt->error]);
 }
 ?>
-

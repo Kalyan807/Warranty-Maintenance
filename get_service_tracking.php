@@ -1,6 +1,12 @@
 <?php
 // get_service_tracking.php - Get Service Tracking for User
-header("Content-Type: application/json");
+// Clean any previous output
+ob_start();
+ob_clean();
+error_reporting(0);
+ini_set('display_errors', 0);
+
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
@@ -16,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 

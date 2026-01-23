@@ -18,15 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // $sup_token = $_SERVER['HTTP_X_SUPERVISOR_TOKEN'] ?? '';
 // if ($sup_token !== 'SOME_SECRET_TOKEN') { echo json_encode(["status"=>"error","message"=>"Unauthorized"]); exit; }
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "warrantymaintenance";
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Read JSON or form
 $raw = file_get_contents("php://input");

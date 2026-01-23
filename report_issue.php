@@ -1,6 +1,14 @@
 <?php
 // report_issue.php - Report Issue API (matches Android's report_issue.php endpoint)
-header("Content-Type: application/json");
+// Clean any previous output and start fresh
+ob_start();
+ob_clean();
+
+// Suppress warnings that could corrupt JSON output
+error_reporting(0);
+ini_set('display_errors', 0);
+
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -15,33 +23,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// DB connection
-include('db.php');
+// Database connection
+include("db.php");
 
 // Read multipart form data
 $appliance = trim($_POST['appliance'] ?? '');
 $description = trim($_POST['description'] ?? '');
 $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : null;
 
-// Allowed appliance types
-$allowed = ['Air Conditioner', 'Television', 'Fan'];
-
-// Normalize appliance name
+// Known appliance mappings (but accept any appliance)
 $appliance_lower = strtolower(str_replace(['_', '-'], ' ', $appliance));
 $appliance_map = [
     'ac' => 'Air Conditioner',
     'air conditioner' => 'Air Conditioner',
     'tv' => 'Television',
     'television' => 'Television',
-    'fan' => 'Fan'
+    'fan' => 'Fan',
+    'washing machine' => 'Washing Machine',
+    'refrigerator' => 'Refrigerator',
+    'fridge' => 'Refrigerator',
+    'microwave' => 'Microwave',
+    'oven' => 'Oven'
 ];
+
+// Use mapped name if exists, otherwise use original
 $canonical_appliance = $appliance_map[$appliance_lower] ?? $appliance;
 
 $errors = [];
 
-// Validation
-if (!in_array($canonical_appliance, $allowed, true)) {
-    $errors[] = "Invalid appliance selected. Allowed: Air Conditioner, Television, Fan";
+// Validation - just check that appliance and description are not empty
+if ($canonical_appliance === '') {
+    $errors[] = "Appliance name is required";
 }
 
 if ($description === '') {

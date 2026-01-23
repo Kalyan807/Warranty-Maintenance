@@ -10,16 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status"=>"error","message"=>"POST method required"]);
+    echo json_encode(["status" => "error", "message" => "POST method required"]);
     exit;
 }
 
-// DB connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status"=>"error","message"=>"Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 /* 🔹 Read JSON or form-data */
 $input = json_decode(file_get_contents("php://input"), true);
@@ -28,10 +24,10 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 }
 
 // Inputs
-$appliance   = trim($input['appliance'] ?? '');
+$appliance = trim($input['appliance'] ?? '');
 $description = trim($input['description'] ?? '');
 
-$allowed = ['Air Conditioner','Television','Fan'];
+$allowed = ['Air Conditioner', 'Television', 'Fan'];
 $errors = [];
 
 // Validation
@@ -44,7 +40,7 @@ if ($description === '') {
 }
 
 if (!empty($errors)) {
-    echo json_encode(["status"=>"error","errors"=>$errors]);
+    echo json_encode(["status" => "error", "errors" => $errors]);
     exit;
 }
 
@@ -52,14 +48,14 @@ if (!empty($errors)) {
 $imagePath = null;
 if (!empty($_FILES['image']['name'])) {
 
-    $allowedTypes = ['image/jpeg','image/png'];
+    $allowedTypes = ['image/jpeg', 'image/png'];
     if (!in_array($_FILES['image']['type'], $allowedTypes)) {
-        echo json_encode(["status"=>"error","message"=>"Only JPG or PNG allowed"]);
+        echo json_encode(["status" => "error", "message" => "Only JPG or PNG allowed"]);
         exit;
     }
 
     if ($_FILES['image']['size'] > 5 * 1024 * 1024) {
-        echo json_encode(["status"=>"error","message"=>"Image max size is 5MB"]);
+        echo json_encode(["status" => "error", "message" => "Image max size is 5MB"]);
         exit;
     }
 
@@ -69,7 +65,7 @@ if (!empty($_FILES['image']['name'])) {
     }
 
     $filename = time() . "_" . $_FILES['image']['name'];
-    $target   = $uploadDir . $filename;
+    $target = $uploadDir . $filename;
 
     if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
         $imagePath = $target;
@@ -89,7 +85,7 @@ if ($stmt->execute()) {
     ]);
 } else {
     echo json_encode([
-        "status"=>"error",
-        "message"=>"Failed to submit issue"
+        "status" => "error",
+        "message" => "Failed to submit issue"
     ]);
 }

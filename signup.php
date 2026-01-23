@@ -1,6 +1,14 @@
 <?php
 // signup.php - User Registration API
-header("Content-Type: application/json");
+// Clean any previous output and start fresh
+ob_start();
+ob_clean();
+
+// Suppress warnings that could corrupt JSON output
+error_reporting(0);
+ini_set('display_errors', 0);
+
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
@@ -16,17 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Database connection
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "warrantymaintenance";
-
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+include("db.php");
 
 // Read input JSON
 $data = json_decode(file_get_contents("php://input"), true);

@@ -1,6 +1,14 @@
 <?php
 // get_user_appliances.php - Get User's Registered Appliances API
-header("Content-Type: application/json");
+// Clean any previous output and start fresh
+ob_start();
+ob_clean();
+
+// Suppress warnings that could corrupt JSON output
+error_reporting(0);
+ini_set('display_errors', 0);
+
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
@@ -16,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 // Get user_id from query param (in production, use session/token)
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;

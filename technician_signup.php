@@ -16,17 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Database connection
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "warrantymaintenance";
-
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
-    exit;
-}
+include("db.php");
 
 // Check and add password column if it doesn't exist
 $checkPasswordCol = $conn->query("SHOW COLUMNS FROM technicians LIKE 'password'");

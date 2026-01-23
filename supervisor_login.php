@@ -11,18 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Database config
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "warrantymaintenance";
-
-// Create connection
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Read JSON input
 $input = json_decode(file_get_contents("php://input"), true);

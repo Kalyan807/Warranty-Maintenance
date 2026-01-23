@@ -5,36 +5,38 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status"=>"error","message"=>"Invalid request method"]);
+    echo json_encode(["status" => "error", "message" => "Invalid request method"]);
     exit;
 }
 
-$host="localhost"; $user="root"; $pass=""; $db="warrantymaintenance";
-$conn = new mysqli($host,$user,$pass,$db);
-if ($conn->connect_error) {
-    echo json_encode(["status"=>"error","message"=>"Database connection failed"]); exit;
-}
+// Database connection
+include("db.php");
 
 // read input (JSON or form)
 $raw = file_get_contents("php://input");
 $input = json_decode($raw, true);
-if (!is_array($input) || empty($input)) $input = $_POST;
+if (!is_array($input) || empty($input))
+    $input = $_POST;
 $email = strtolower(trim($input['email'] ?? ''));
 
 if (empty($email)) {
-    echo json_encode(["status"=>"error","message"=>"Email is required"]); exit;
+    echo json_encode(["status" => "error", "message" => "Email is required"]);
+    exit;
 }
 
 // Check user exists
 $stmt = $conn->prepare("SELECT id, full_name FROM users WHERE email = ?");
-$stmt->bind_param("s",$email);
+$stmt->bind_param("s", $email);
 $stmt->execute();
 $res = $stmt->get_result();
 if ($res->num_rows === 0) {
     // For privacy: respond success even if email not found
-    echo json_encode(["status"=>"success","message"=>"If that email exists, a reset link was sent."]);
+    echo json_encode(["status" => "success", "message" => "If that email exists, a reset link was sent."]);
     exit;
 }
 $user = $res->fetch_assoc();
@@ -66,6 +68,6 @@ $headers = "From: no-reply@example.com\r\nReply-To: no-reply@example.com\r\n";
 
 // Better: use PHPMailer + SMTP in production (see notes below)
 
-echo json_encode(["status"=>"success","message"=>"If that email exists, a reset link was sent."]);
+echo json_encode(["status" => "success", "message" => "If that email exists, a reset link was sent."]);
 exit;
 ?>

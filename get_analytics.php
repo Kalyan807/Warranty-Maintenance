@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-include('db.php');
+include("db.php");
 
 // Total issues
 $totalResult = $conn->query("SELECT COUNT(*) as count FROM issues");

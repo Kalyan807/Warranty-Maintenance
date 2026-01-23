@@ -18,15 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// DB Connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Database connection failed"
-    ]);
-    exit;
-}
+// Database connection
+include("db.php");
 
 // Read JSON or form-data
 $raw = file_get_contents("php://input");
