@@ -16,11 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+include('db.php');
 
 // Get user_id from query param (in production, use session/token)
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;

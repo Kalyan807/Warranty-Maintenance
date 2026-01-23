@@ -16,11 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Database connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+include('db.php');
 
 // Get days parameter (default 90 days)
 $days = isset($_GET['days']) ? intval($_GET['days']) : 90;

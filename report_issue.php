@@ -16,11 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // DB connection
-$conn = new mysqli("localhost", "root", "", "warrantymaintenance");
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
+include('db.php');
 
 // Read multipart form data
 $appliance = trim($_POST['appliance'] ?? '');
